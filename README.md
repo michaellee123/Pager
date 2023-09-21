@@ -2,4 +2,4 @@
 
 ## Take a look
 
-[![Watch the video](https://img.youtube.com/vi/0aX-WajbxhE/maxresdefault.jpg)](https://youtube.com/shorts/0aX-WajbxhE)
+[![Watch the video](./screen_record.gif)](https://youtube.com/shorts/0aX-WajbxhE)
