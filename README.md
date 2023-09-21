@@ -2,10 +2,4 @@
 
 ## Take a look
 
-<video id="video" controls="" preload="none" poster="">
-      <source id="ogv" src="./screen_record.mov" type="video/mp4">
-</video>
-
-https://youtube.com/shorts/0aX-WajbxhE
-
-[![Watch the video](https://youtube.com/shorts/0aX-WajbxhE)](https://youtube.com/shorts/0aX-WajbxhE)
+[![Watch the video](https://img.youtube.com/vi/0aX-WajbxhE/maxresdefault.jpg)](https://youtube.com/shorts/0aX-WajbxhE)
