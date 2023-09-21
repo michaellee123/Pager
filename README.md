@@ -6,4 +6,4 @@
       <source id="ogv" src="./screen_record.mov" type="video/mp4">
 </video>
 
-https://youtube.com/shorts/0aX-WajbxhE?feature=share
+https://youtube.com/shorts/0aX-WajbxhE
