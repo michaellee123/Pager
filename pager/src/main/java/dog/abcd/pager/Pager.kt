@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
+import androidx.compose.material.SwipeProgress
 import androidx.compose.material.SwipeableDefaults
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.ThresholdConfig
@@ -89,11 +90,36 @@ fun <T> List<T>.makeLoop(loopLimit: Int = 1): List<T> {
 
 class PagerSwipeState(
     val total: Int = 0,
-    val current: Int = 0,
-    val from: Int = 0,
-    val to: Int = 0,
-    val fraction: Float = 0f
-)
+    private val swipeAbleState: SwipeableState<Int> = SwipeableState(0),
+    private val loopLimit: Int = 0,
+    private val progress: SwipeProgress<Int> = swipeAbleState.progress
+) {
+
+    val current: Int
+        get() {
+            var current = swipeAbleState.targetValue - loopLimit
+            if (current < 0) {
+                current = total - 1
+            } else if (current > total - 1) {
+                current = 0
+            }
+            return current
+        }
+
+    val from: Int get() = swipeAbleState.progress.from - loopLimit
+
+    val to: Int get() = swipeAbleState.progress.to - loopLimit
+
+    val fraction: Float get() = swipeAbleState.progress.fraction
+
+    suspend fun snapTo(to: Int) {
+        swipeAbleState.snapTo(to + loopLimit)
+    }
+
+    suspend fun animateTo(to: Int) {
+        swipeAbleState.animateTo(to + loopLimit)
+    }
+}
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -111,15 +137,31 @@ fun <T> BasicPager(
     pagerSwipeState: MutableState<PagerSwipeState> = mutableStateOf(PagerSwipeState()),
     data: List<T>,
     content: @Composable (pageIndex: Int, item: T, swipeAbleState: SwipeableState<Int>, size: Size) -> Unit
-): SwipeableState<Int> {
+) {
     val coroutineScope = rememberCoroutineScope()
 
     val count = data.size
     var enabled by remember {
         mutableStateOf(true)
     }
-    val swipeAbleState =
+
+    val swipeAbleState: SwipeableState<Int> =
         rememberSwipeableState(initialValue = minOf(data.size - 1, maxOf(0, loopLimit)))
+
+    LaunchedEffect(key1 = data.size, block = {
+        val total = if (data.size > 2 * loopLimit) {
+            data.size - 2 * loopLimit
+        } else {
+            data.size
+        }
+
+        pagerSwipeState.value = PagerSwipeState(
+            total,
+            swipeAbleState,
+            loopLimit
+        )
+    })
+
     var size by remember {
         mutableStateOf(Size(1f, 1f))
     }
@@ -149,44 +191,22 @@ fun <T> BasicPager(
         for (i in 0 until count) {
             content(i, data[i], swipeAbleState, size)
         }
-
-        if (loop) {
-            LaunchedEffect(key1 = swipeAbleState.progress, block = {
-                if (swipeAbleState.progress.to == count - loopLimit && swipeAbleState.progress.fraction >= 0.9f) {
-                    enabled = false
-                    swipeAbleState.snapTo(loopLimit)
-                } else if (swipeAbleState.progress.to == loopLimit - 1 && swipeAbleState.progress.fraction >= 0.9f) {
-                    enabled = false
-                    swipeAbleState.snapTo(count - 1 - loopLimit)
-                } else {
-                    enabled = true
-                }
-
-                val total = if (data.size > 2 * loopLimit) {
-                    data.size - 2 * loopLimit
-                } else {
-                    data.size
-                }
-
-                var current = swipeAbleState.targetValue - loopLimit
-                if (current < 0) {
-                    current = total - 1
-                } else if (current > total - 1) {
-                    current = 0
-                }
-
-                pagerSwipeState.value = PagerSwipeState(
-                    total,
-                    current,
-                    swipeAbleState.progress.from - loopLimit,
-                    swipeAbleState.progress.to - loopLimit,
-                    swipeAbleState.progress.fraction
-                )
-            })
-        }
+    }
+    if (loop) {
+        LaunchedEffect(key1 = swipeAbleState.progress, block = {
+            if (swipeAbleState.progress.to == count - loopLimit && swipeAbleState.progress.fraction >= 0.9f) {
+                enabled = false
+                swipeAbleState.snapTo(loopLimit)
+            } else if (swipeAbleState.progress.to == loopLimit - 1 && swipeAbleState.progress.fraction >= 0.9f) {
+                enabled = false
+                swipeAbleState.snapTo(count - 1 - loopLimit)
+            } else {
+                enabled = true
+            }
+        })
     }
     if (autoSwipe) {
-        LaunchedEffect(key1 = swipeAbleState.currentValue, block = {
+        LaunchedEffect(key1 = duration, block = {
             while (true) {
                 delay(duration)
                 coroutineScope.launch {
@@ -207,7 +227,6 @@ fun <T> BasicPager(
             }
         }
     }
-    return swipeAbleState
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -225,13 +244,13 @@ fun <T> LinearPager(
     pagerSwipeState: MutableState<PagerSwipeState> = mutableStateOf(PagerSwipeState()),
     data: List<T>,
     content: @Composable (data: T) -> Unit
-): SwipeableState<Int> {
+) {
     val realData = if (loop) {
         data.makeLoop(1)
     } else {
         data
     }
-    return BasicPager(
+    BasicPager(
         modifier,
         thresholds,
         velocityThreshold,
@@ -241,7 +260,7 @@ fun <T> LinearPager(
         autoSwipe,
         duration,
         pagerSwipeState,
-        realData
+        realData,
     ) { pageIndex, data, swipeAbleState, size ->
         val originOffset = pageIndex * size.width.roundToInt()
         Box(modifier = Modifier
@@ -270,11 +289,11 @@ fun <T> StackPager(
     scaleStep: Float = 0.05f,
     data: List<T>,
     content: @Composable (data: T) -> Unit
-): SwipeableState<Int> {
+) {
     val loopLimit = 3
     val realData = data.makeLoop(3)
     val count = realData.size
-    return BasicPager(
+    BasicPager(
         modifier,
         thresholds,
         velocityThreshold,
@@ -284,7 +303,7 @@ fun <T> StackPager(
         autoSwipe,
         duration,
         pagerSwipeState,
-        realData
+        realData,
     ) { pageIndex, data, swipeAbleState, size ->
         // 当前的偏移量
         val nowOffset = swipeAbleState.offset.value.absoluteValue
