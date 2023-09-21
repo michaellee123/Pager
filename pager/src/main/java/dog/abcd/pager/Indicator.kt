@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import kotlin.math.roundToInt
 
 @Composable
@@ -30,8 +31,10 @@ fun ScrollBallIndicator(
     swipeState: PagerSwipeState,
     ballSize: Dp = 10.dp,
     spaceSize: Dp = 10.dp,
+    indicatorSize: Dp = 10.dp,
     unSelectColor: Color = Color(0x66FFFFFF),
-    selectColor: Color = Color.White
+    selectColor: Color = Color.White,
+    underIndicator: Boolean = false,
 ) {
 
     Box(
@@ -39,9 +42,12 @@ fun ScrollBallIndicator(
     ) {
         var totalWidth by remember { mutableStateOf(0) }
         Row(
-            modifier = Modifier.onGloballyPositioned {
-                totalWidth = it.size.width
-            },
+            modifier = Modifier
+                .onGloballyPositioned {
+                    totalWidth = it.size.width
+                }
+                .zIndex(2f)
+                .align(Alignment.Center),
             horizontalArrangement = Arrangement.spacedBy(spaceSize)
         ) {
             for (i in 0 until swipeState.total) {
@@ -66,11 +72,16 @@ fun ScrollBallIndicator(
                         }
                     val offsetMulti = (swipeState.from + progress).coerceIn(0f, max.toFloat())
                     val gap = (totalWidth.toFloat() - ballSize.toPx()) / (max * 2) * 2
-                    val offset = offsetMulti * gap
-                    IntOffset(offset.roundToInt(), 0)
+                    val offset = offsetMulti * gap - (indicatorSize.toPx() - ballSize.toPx()) / 2
+                    IntOffset(
+                        offset.roundToInt(),
+                        0
+                    )
                 }
-                .size(ballSize)
+                .size(indicatorSize)
                 .background(selectColor, CircleShape)
+                .zIndex(if (underIndicator) 1f else 3f)
+                .align(Alignment.CenterStart)
         )
 
     }

@@ -98,6 +98,47 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+                Text(
+                    text = "${linearPagerSwipeState.value.current + 1}/${list.size}",
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .align(Alignment.BottomEnd)
+                        .background(Color(0x66FFFFFF), CircleShape)
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                    ,
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                ScrollBallIndicator(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .padding(bottom = 60.dp)
+                        .align(Alignment.BottomCenter),
+                    swipeState = linearPagerSwipeState.value,
+                    ballSize = 12.dp,
+                    spaceSize = 10.dp,
+                    indicatorSize = 8.dp,
+                    underIndicator = false,
+                    selectColor = Color(0xFFD0B5FF),
+                    unSelectColor = Color(0xFF5D5866),
+                )
+
+                ScrollBallIndicator(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .padding(bottom = 30.dp)
+                        .align(Alignment.BottomCenter),
+                    swipeState = linearPagerSwipeState.value,
+                    ballSize = 10.dp,
+                    spaceSize = 10.dp,
+                    indicatorSize = 20.dp,
+                    underIndicator = true,
+                    selectColor = Color(0xFF673AB7),
+                    unSelectColor = Color(0xFFFF9800),
+                )
+
                 ScrollBallIndicator(
                     modifier = Modifier
                         .padding(20.dp)
@@ -118,6 +159,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier,
                     data = list,
                     pagerSwipeState = stackPagerSwipeState,
+                    stackOffsetStep = 10.dp
                 ) {
 
                     Box(
@@ -131,7 +173,8 @@ class MainActivity : ComponentActivity() {
                             model = it,
                             contentDescription = null,
                             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
                                 .clip(RoundedCornerShape(10.dp))
                         )
                         Text(
@@ -154,6 +197,20 @@ class MainActivity : ComponentActivity() {
                         .padding(20.dp), swipeState = stackPagerSwipeState.value
                 )
 
+                ScrollBallIndicator(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .background(Color(0xFFFFFFFF), CircleShape)
+                        .padding(2.dp)
+                        .align(Alignment.TopStart),
+                    swipeState = stackPagerSwipeState.value,
+                    ballSize = 10.dp,
+                    spaceSize = 0.dp,
+                    indicatorSize = 10.dp,
+                    underIndicator = false,
+                    selectColor = Color(0xFF3F51B5),
+                    unSelectColor = Color(0x00FFFFFF),
+                )
             }
             Text(
                 text = "Hello world!",
