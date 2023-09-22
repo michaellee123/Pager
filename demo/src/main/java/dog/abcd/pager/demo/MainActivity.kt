@@ -51,10 +51,8 @@ import dog.abcd.pager.PagerSwipeState
 import dog.abcd.pager.ScrollBallIndicator
 import dog.abcd.pager.StackPager
 import dog.abcd.pager.demo.ui.theme.PagerTheme
+import dog.abcd.pager.rememberPagerSwipeState
 import kotlin.math.roundToInt
-
-var stackPagerSwipeState = mutableStateOf(PagerSwipeState())
-var linearPagerSwipeState = mutableStateOf(PagerSwipeState())
 
 @OptIn(ExperimentalMaterialApi::class)
 class MainActivity : ComponentActivity() {
@@ -79,13 +77,20 @@ class MainActivity : ComponentActivity() {
     @Composable
     @Preview(showBackground = true)
     fun PagerView() {
+        val linearPagerSwipeState = rememberPagerSwipeState()
+        val stackPagerSwipeState = rememberPagerSwipeState()
         Column(Modifier.fillMaxSize()) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Box {
 
-                LinearPager(data = list, pagerSwipeState = linearPagerSwipeState, duration = 5000) {
+                LinearPager(
+                    data = list,
+                    pagerSwipeState = linearPagerSwipeState,
+                    duration = 5000,
+                    widthPx = resources.displayMetrics.widthPixels.toFloat()
+                ) { it, index ->
                     AsyncImage(
                         model = it,
                         contentDescription = null,
@@ -99,13 +104,12 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Text(
-                    text = "${linearPagerSwipeState.value.current + 1}/${list.size}",
+                    text = "${linearPagerSwipeState.current + 1}/${list.size}",
                     modifier = Modifier
                         .padding(20.dp)
                         .align(Alignment.BottomEnd)
                         .background(Color(0x66FFFFFF), CircleShape)
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                    ,
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
                     color = Color.White,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
@@ -116,7 +120,7 @@ class MainActivity : ComponentActivity() {
                         .padding(20.dp)
                         .padding(bottom = 60.dp)
                         .align(Alignment.BottomCenter),
-                    swipeState = linearPagerSwipeState.value,
+                    swipeState = linearPagerSwipeState,
                     ballSize = 12.dp,
                     spaceSize = 10.dp,
                     indicatorSize = 8.dp,
@@ -130,7 +134,7 @@ class MainActivity : ComponentActivity() {
                         .padding(20.dp)
                         .padding(bottom = 30.dp)
                         .align(Alignment.BottomCenter),
-                    swipeState = linearPagerSwipeState.value,
+                    swipeState = linearPagerSwipeState,
                     ballSize = 10.dp,
                     spaceSize = 10.dp,
                     indicatorSize = 20.dp,
@@ -145,7 +149,7 @@ class MainActivity : ComponentActivity() {
                         .align(Alignment.BottomCenter)
                         .background(Color(0x66FFFFFF), CircleShape)
                         .padding(vertical = 5.dp, horizontal = 8.dp),
-                    swipeState = linearPagerSwipeState.value,
+                    swipeState = linearPagerSwipeState,
                     ballSize = 10.dp,
                     spaceSize = 10.dp,
                 )
@@ -159,8 +163,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier,
                     data = list,
                     pagerSwipeState = stackPagerSwipeState,
-                    stackOffsetStep = 10.dp
-                ) {
+                    stackOffsetStep = 10.dp,
+                    widthPx = resources.displayMetrics.widthPixels.toFloat()
+                ) { it, index ->
 
                     Box(
                         Modifier
@@ -194,7 +199,7 @@ class MainActivity : ComponentActivity() {
                 BasicIndicator(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(20.dp), swipeState = stackPagerSwipeState.value
+                        .padding(20.dp), swipeState = stackPagerSwipeState
                 )
 
                 ScrollBallIndicator(
@@ -203,7 +208,7 @@ class MainActivity : ComponentActivity() {
                         .background(Color(0xFFFFFFFF), CircleShape)
                         .padding(2.dp)
                         .align(Alignment.TopStart),
-                    swipeState = stackPagerSwipeState.value,
+                    swipeState = stackPagerSwipeState,
                     ballSize = 10.dp,
                     spaceSize = 0.dp,
                     indicatorSize = 10.dp,

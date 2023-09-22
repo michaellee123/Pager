@@ -39,9 +39,11 @@ import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
-
 fun <T> List<T>.makeLoop(loopLimit: Int = 1): List<T> {
     val result = ArrayList<T>()
+    if (isEmpty()) {
+        return result
+    }
     if (loopLimit == 1) {
         result.addAll(this)
         result.add(0, last())
@@ -89,10 +91,9 @@ fun <T> List<T>.makeLoop(loopLimit: Int = 1): List<T> {
 }
 
 class PagerSwipeState(
-    val total: Int = 0,
-    private val swipeAbleState: SwipeableState<Int> = SwipeableState(0),
-    private val loopLimit: Int = 0,
-    private val progress: SwipeProgress<Int> = swipeAbleState.progress
+    var total: Int = 0,
+    var swipeAbleState: SwipeableState<Int> = SwipeableState(0),
+    var loopLimit: Int = 0,
 ) {
 
     val current: Int
@@ -112,12 +113,21 @@ class PagerSwipeState(
 
     val fraction: Float get() = swipeAbleState.progress.fraction
 
+    @OptIn(ExperimentalMaterialApi::class)
     suspend fun snapTo(to: Int) {
         swipeAbleState.snapTo(to + loopLimit)
     }
 
+    @OptIn(ExperimentalMaterialApi::class)
     suspend fun animateTo(to: Int) {
         swipeAbleState.animateTo(to + loopLimit)
+    }
+}
+
+@Composable
+fun rememberPagerSwipeState(): PagerSwipeState {
+    return remember {
+        PagerSwipeState()
     }
 }
 
@@ -134,9 +144,10 @@ fun <T> BasicPager(
     userEnable: Boolean = true,
     autoSwipe: Boolean = false,
     duration: Long = 3000,
-    pagerSwipeState: MutableState<PagerSwipeState> = mutableStateOf(PagerSwipeState()),
+    widthPx: Float,
     data: List<T>,
-    content: @Composable (pageIndex: Int, item: T, swipeAbleState: SwipeableState<Int>, size: Size) -> Unit
+    pagerSwipeState: PagerSwipeState = remember { PagerSwipeState() },
+    content: @Composable (pageIndex: Int, item: T, swipeAbleState: SwipeableState<Int>, widthPx: Float) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -148,48 +159,44 @@ fun <T> BasicPager(
     val swipeAbleState: SwipeableState<Int> =
         rememberSwipeableState(initialValue = minOf(data.size - 1, maxOf(0, loopLimit)))
 
-    LaunchedEffect(key1 = data.size, block = {
-        val total = if (data.size > 2 * loopLimit) {
-            data.size - 2 * loopLimit
-        } else {
-            data.size
-        }
-
-        pagerSwipeState.value = PagerSwipeState(
-            total,
-            swipeAbleState,
-            loopLimit
-        )
-    })
-
-    var size by remember {
-        mutableStateOf(Size(1f, 1f))
+    val total = if (data.size > 2 * loopLimit) {
+        data.size - 2 * loopLimit
+    } else {
+        data.size
     }
+
+    pagerSwipeState.total = total
+    pagerSwipeState.swipeAbleState = swipeAbleState
+    pagerSwipeState.loopLimit = loopLimit
 
     val pairs = mutableListOf<Pair<Float, Int>>()
     for (i in 0 until count) {
-        pairs.add(-i * size.width to i)
+        pairs.add(-i * widthPx to i)
     }
 
     val anchors = mapOf(*pairs.toTypedArray())
 
     Box(
         modifier = modifier
-            .onGloballyPositioned {
-                size = it.size.toSize()
-            }
             .background(Color.Transparent)
-            .swipeable(
-                state = swipeAbleState,
-                anchors = anchors,
-                thresholds = thresholds,
-                orientation = Orientation.Horizontal,
-                enabled = if (userEnable.not()) false else if (count <= 1) false else enabled,
-                velocityThreshold = velocityThreshold
+            .then(
+                if (data.isNotEmpty()) {
+                    Modifier
+                        .swipeable(
+                            state = swipeAbleState,
+                            anchors = anchors,
+                            thresholds = thresholds,
+                            orientation = Orientation.Horizontal,
+                            enabled = if (userEnable.not()) false else if (count <= 1) false else enabled,
+                            velocityThreshold = velocityThreshold
+                        )
+                } else {
+                    Modifier
+                }
             ),
     ) {
         for (i in 0 until count) {
-            content(i, data[i], swipeAbleState, size)
+            content(i, data[i], swipeAbleState, widthPx)
         }
     }
     if (loop) {
@@ -241,9 +248,10 @@ fun <T> LinearPager(
     userEnable: Boolean = true,
     autoSwipe: Boolean = true,
     duration: Long = 3000,
-    pagerSwipeState: MutableState<PagerSwipeState> = mutableStateOf(PagerSwipeState()),
+    pagerSwipeState: PagerSwipeState = remember { PagerSwipeState() },
+    widthPx: Float,
     data: List<T>,
-    content: @Composable (data: T) -> Unit
+    content: @Composable (data: T, index: Int) -> Unit
 ) {
     val realData = if (loop) {
         data.makeLoop(1)
@@ -259,15 +267,16 @@ fun <T> LinearPager(
         userEnable,
         autoSwipe,
         duration,
-        pagerSwipeState,
+        widthPx,
         realData,
-    ) { pageIndex, data, swipeAbleState, size ->
-        val originOffset = pageIndex * size.width.roundToInt()
+        pagerSwipeState,
+    ) { pageIndex, data, swipeAbleState, widthPx ->
+        val originOffset = pageIndex * widthPx.roundToInt()
         Box(modifier = Modifier
             .offset {
                 IntOffset(originOffset + swipeAbleState.offset.value.roundToInt(), 0)
             }) {
-            content(data)
+            content(data, pageIndex - (if (loop) 1 else 0))
         }
     }
 }
@@ -283,12 +292,13 @@ fun <T> StackPager(
     userEnable: Boolean = true,
     autoSwipe: Boolean = true,
     duration: Long = 3000,
-    pagerSwipeState: MutableState<PagerSwipeState> = mutableStateOf(PagerSwipeState()),
+    pagerSwipeState: PagerSwipeState = remember { PagerSwipeState() },
     stackOffsetStep: Dp = 8.dp,
     alphaStep: Float = 0.35f,
     scaleStep: Float = 0.05f,
+    widthPx: Float,
     data: List<T>,
-    content: @Composable (data: T) -> Unit
+    content: @Composable (data: T, index: Int) -> Unit
 ) {
     val loopLimit = 3
     val realData = data.makeLoop(3)
@@ -302,16 +312,17 @@ fun <T> StackPager(
         userEnable,
         autoSwipe,
         duration,
-        pagerSwipeState,
+        widthPx,
         realData,
-    ) { pageIndex, data, swipeAbleState, size ->
+        pagerSwipeState,
+    ) { pageIndex, data, swipeAbleState, widthPx ->
         // 当前的偏移量
         val nowOffset = swipeAbleState.offset.value.absoluteValue
 
         // 自己在总列表中的进度位置就是index
 
         //当前滑动过的进度
-        val progress = nowOffset / size.width
+        val progress = nowOffset / widthPx
 
         val offsetMulti = progress - pageIndex
 
@@ -347,7 +358,7 @@ fun <T> StackPager(
                 .alpha(alpha)
                 .scale(scale)
         ) {
-            content(data)
+            content(data, pageIndex - loopLimit)
         }
     }
 }
