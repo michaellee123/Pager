@@ -92,8 +92,8 @@ fun <T> List<T>.makeLoop(loopLimit: Int = 1): List<T> {
 
 class PagerSwipeState(
     var total: Int = 0,
-    var swipeAbleState: SwipeableState<Int> = SwipeableState(0),
-    var loopLimit: Int = 0,
+    internal var swipeAbleState: SwipeableState<Int> = SwipeableState(0),
+    internal var loopLimit: Int = 0,
 ) {
 
     val current: Int
