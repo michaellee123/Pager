@@ -104,7 +104,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Text(
-                    text = "${linearPagerSwipeState.current + 1}/${list.size}",
+                    text = "${linearPagerSwipeState.current + 1}/${linearPagerSwipeState.total}",
                     modifier = Modifier
                         .padding(20.dp)
                         .align(Alignment.BottomEnd)
@@ -181,6 +181,9 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    Toast.makeText(this@MainActivity, "click $index", Toast.LENGTH_SHORT).show()
+                                }
                         )
                         Text(
                             text = it,

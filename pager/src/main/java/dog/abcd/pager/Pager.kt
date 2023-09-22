@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -213,7 +214,7 @@ fun <T> BasicPager(
         })
     }
     if (autoSwipe) {
-        LaunchedEffect(key1 = duration, block = {
+        LaunchedEffect(key1 = swipeAbleState.progress.fraction, block = {
             while (true) {
                 delay(duration)
                 coroutineScope.launch {
@@ -273,9 +274,10 @@ fun <T> LinearPager(
     ) { pageIndex, data, swipeAbleState, widthPx ->
         val originOffset = pageIndex * widthPx.roundToInt()
         Box(modifier = Modifier
-            .offset {
-                IntOffset(originOffset + swipeAbleState.offset.value.roundToInt(), 0)
-            }) {
+            .graphicsLayer {
+                translationX = originOffset + swipeAbleState.offset.value
+            }
+        ) {
             content(data, pageIndex - (if (loop) 1 else 0))
         }
     }
@@ -316,47 +318,49 @@ fun <T> StackPager(
         realData,
         pagerSwipeState,
     ) { pageIndex, data, swipeAbleState, widthPx ->
-        // 当前的偏移量
-        val nowOffset = swipeAbleState.offset.value.absoluteValue
-
-        // 自己在总列表中的进度位置就是index
-
-        //当前滑动过的进度
-        val progress = nowOffset / widthPx
-
-        val offsetMulti = progress - pageIndex
-
-//        Log.e("offsetMulti", "index:$pageIndex : $offsetMulti")
-
-        val alpha = if (offsetMulti > 0) {
-            (1 - offsetMulti * 2).coerceIn(0f, 1f)
-        } else {
-            (1 - (offsetMulti.absoluteValue * alphaStep)).coerceIn(0f, 1f)
+        var alpha by remember {
+            mutableStateOf(0f)
         }
-
-//        Log.e("alpha", "index:$pageIndex : $alpha")
-
-        val scale = if (offsetMulti > 0) {
-            (1 + offsetMulti * scaleStep * 3)
-        } else {
-            (1 - (offsetMulti.absoluteValue * scaleStep)).coerceIn(0f, 1f)
-        }
-
-//        Log.e("scale", "index:$pageIndex : $scale")
-
         Box(
             modifier = Modifier
                 .zIndex(if (alpha <= 0) 0f else (count - pageIndex).toFloat())
-                .offset {
-                    val offset = if (offsetMulti > 0) {
-                        (offsetMulti * 2 * stackOffsetStep.toPx()).toInt()
+                .graphicsLayer {
+                    // 当前的偏移量
+                    val nowOffset = swipeAbleState.offset.value.absoluteValue
+
+                    // 自己在总列表中的进度位置就是index
+
+                    //当前滑动过的进度
+                    val progress = nowOffset / widthPx
+
+                    val offsetMulti = progress - pageIndex
+
+                    // Log.e("offsetMulti", "index:$pageIndex : $offsetMulti")
+
+                    alpha = if (offsetMulti > 0) {
+                        (1 - offsetMulti * 2).coerceIn(0f, 1f)
                     } else {
-                        (offsetMulti * stackOffsetStep.toPx()).toInt()
+                        (1 - (offsetMulti.absoluteValue * alphaStep)).coerceIn(0f, 1f)
                     }
-                    IntOffset(0, offset)
+
+                    // Log.e("alpha", "index:$pageIndex : $alpha")
+
+                    val scale = if (offsetMulti > 0) {
+                        (1 + offsetMulti * scaleStep * 3)
+                    } else {
+                        (1 - (offsetMulti.absoluteValue * scaleStep)).coerceIn(0f, 1f)
+                    }
+
+                    // Log.e("scale", "index:$pageIndex : $scale")
+                    this.alpha = alpha
+                    this.scaleX = scale
+                    this.scaleY = scale
+                    this.translationY = if (offsetMulti > 0) {
+                        (offsetMulti * 2 * stackOffsetStep.toPx())
+                    } else {
+                        (offsetMulti * stackOffsetStep.toPx())
+                    }
                 }
-                .alpha(alpha)
-                .scale(scale)
         ) {
             content(data, pageIndex - loopLimit)
         }
