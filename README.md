@@ -176,6 +176,6 @@ In another word, `LinearPager` and `StackPager` are based on `BasicPager`, and t
 
 ### About the `loopLimit`
 
-If you need a loop pager, the last item will be the first item, and the first item will be the last item. So if the animation needs to be smooth, you need to set the `loopLimit` to the size of the data list.
+If you need a loop pager, the last item will be the first item, and the first item will be the last item. So if the animation needs to be smooth, you need to set the `loopLimit` to you want to show over of the original data.
 
 For example, if you have 5 items and use a style like `LinearPager` you need to set the `loopLimit` to 1. And you need to change your list to `[5, 1, 2, 3, 4, 5, 1]`. If you use a style like `StackPager`, you need to set the `loopLimit` to 3. And you need to change your list to `[3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3]`. When you swipe the page to the end(your original data list's end), and swipe again, `BasicPager` will make the `current` back to the first, and the animation will looks smooth. If you don't need a loop pager, just set the `loopLimit` to 0 and `loop` to false.
