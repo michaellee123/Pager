@@ -213,10 +213,10 @@ fun <T> BasicPager(
         LaunchedEffect(key1 = swipeAbleState.progress, block = {
             if (swipeAbleState.progress.to == count - loopLimit && swipeAbleState.progress.fraction >= 0.9f) {
                 enabled = false
-                pagerSwipeState.snapTo(loopLimit)
+                swipeAbleState.snapTo(loopLimit)
             } else if (swipeAbleState.progress.to == loopLimit - 1 && swipeAbleState.progress.fraction >= 0.9f) {
                 enabled = false
-                pagerSwipeState.snapTo(count - 1 - loopLimit)
+                swipeAbleState.snapTo(count - 1 - loopLimit)
             } else {
                 enabled = true
             }
@@ -227,7 +227,11 @@ fun <T> BasicPager(
             while (true) {
                 delay(duration)
                 coroutineScope.launch {
-                    pagerSwipeState.animateTo(swipeAbleState.targetValue + 1)
+                    try {
+                        swipeAbleState.animateTo(swipeAbleState.targetValue + 1)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         })
@@ -236,7 +240,11 @@ fun <T> BasicPager(
         SideEffect {
             enabled = false
             coroutineScope.launch {
-                pagerSwipeState.snapTo(loopLimit)
+                try {
+                    swipeAbleState.snapTo(loopLimit)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }
