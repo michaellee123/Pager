@@ -2,6 +2,7 @@
 
 package dog.abcd.pager
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
@@ -116,12 +117,20 @@ class PagerSwipeState(
 
     @OptIn(ExperimentalMaterialApi::class)
     suspend fun snapTo(to: Int) {
-        swipeAbleState.snapTo(to + loopLimit)
+        try {
+            swipeAbleState.snapTo(to + loopLimit)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     @OptIn(ExperimentalMaterialApi::class)
     suspend fun animateTo(to: Int) {
-        swipeAbleState.animateTo(to + loopLimit)
+        try {
+            swipeAbleState.animateTo(to + loopLimit)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
 
@@ -158,7 +167,7 @@ fun <T> BasicPager(
     }
 
     val swipeAbleState: SwipeableState<Int> =
-        rememberSwipeableState(initialValue = minOf(data.size - 1, maxOf(0, loopLimit)))
+        rememberSwipeableState(initialValue = maxOf(0, minOf(data.size - 1, loopLimit)))
 
     val total = if (data.size > 2 * loopLimit) {
         data.size - 2 * loopLimit
@@ -204,10 +213,10 @@ fun <T> BasicPager(
         LaunchedEffect(key1 = swipeAbleState.progress, block = {
             if (swipeAbleState.progress.to == count - loopLimit && swipeAbleState.progress.fraction >= 0.9f) {
                 enabled = false
-                swipeAbleState.snapTo(loopLimit)
+                pagerSwipeState.snapTo(loopLimit)
             } else if (swipeAbleState.progress.to == loopLimit - 1 && swipeAbleState.progress.fraction >= 0.9f) {
                 enabled = false
-                swipeAbleState.snapTo(count - 1 - loopLimit)
+                pagerSwipeState.snapTo(count - 1 - loopLimit)
             } else {
                 enabled = true
             }
@@ -218,11 +227,7 @@ fun <T> BasicPager(
             while (true) {
                 delay(duration)
                 coroutineScope.launch {
-                    try {
-                        swipeAbleState.animateTo(swipeAbleState.targetValue + 1)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                    pagerSwipeState.animateTo(swipeAbleState.targetValue + 1)
                 }
             }
         })
@@ -231,7 +236,7 @@ fun <T> BasicPager(
         SideEffect {
             enabled = false
             coroutineScope.launch {
-                swipeAbleState.snapTo(loopLimit)
+                pagerSwipeState.snapTo(loopLimit)
             }
         }
     }
