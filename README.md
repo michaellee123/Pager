@@ -8,7 +8,7 @@
 
 ## How about it
 
-You know that, Google created `ViewPager` and `ViewPager2`, now there is a new shit named `Compose Pager`. I don't know what's in Google's developer's mind to create such a worst thing, `Compose Pager` missed `offset limit`, it means you can only show three items, but sometimes we need to write a banner with stack style, I don't know why how we wanna do that, but the PMs want it.
+You know that, Google created `ViewPager` and `ViewPager2`, now there is a new shit named `Compose Pager`. I don't know what's in Google's developer's mind to create such a worst thing, `Compose Pager` missed `offset limit`, it means you can only show three items, but sometimes we need to write a banner with stack style, I don't know why how we wanna do that, but the PMs want it. (Modify at 2023-09-26: My genius product manager said that he want a normal style banner, so why did he create that shit? Is he thinking with his asshole?)
 
 But don't worry, we have hands, yep, we have these. We can do anything we want, so there are some new shit by me here.
 
@@ -148,7 +148,7 @@ Text(
 ```
 
 | name     | description                      |
-| -------- | -------------------------------- |
+|----------|----------------------------------|
 | current  | current index                    |
 | total    | indicator size                   |
 | from     | animation start index            |
