@@ -59,13 +59,13 @@ fun PagerTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            val backgroundColor = Color(0xFFE0E0E0).toArgb()
+            val backgroundColor = Color(0x00000000).toArgb()
             window.statusBarColor = backgroundColor
-            window.setBackgroundDrawable(ColorDrawable(backgroundColor))
             window.navigationBarColor = backgroundColor
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 window.navigationBarDividerColor = backgroundColor
             }
+            WindowCompat.setDecorFitsSystemWindows(window, false)
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
         }
     }

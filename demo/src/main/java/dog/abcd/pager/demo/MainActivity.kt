@@ -13,12 +13,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -73,13 +76,58 @@ class MainActivity : ComponentActivity() {
         "https://img0.baidu.com/it/u=1901343054,2381723066&fm=253&fmt=auto&app=120&f=JPEG?w=800&h=500"
     )
 
+    val colors = listOf(
+        Color(0xFFFF9800),
+        Color(0xFFCDDC39),
+        Color(0xFF4CAF50),
+        Color(0xFF3F51B5),
+        Color(0xFF673AB7),
+    )
+
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     @Preview(showBackground = true)
     fun PagerView() {
+        val colorPagerSwipeState = rememberPagerSwipeState()
         val linearPagerSwipeState = rememberPagerSwipeState()
         val stackPagerSwipeState = rememberPagerSwipeState()
-        Column(Modifier.fillMaxSize()) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .drawBehind {
+                    val nowColor = colors[colorPagerSwipeState.from % colors.size]
+                    val to =
+                        if (colorPagerSwipeState.to < 0) colorPagerSwipeState.total - 1 else colorPagerSwipeState.to
+                    Log.e("PagerView", "from:${colorPagerSwipeState.from},to:$to")
+                    val targetColor = colors[to % colors.size]
+                    val showColor = Color(
+                        red = (targetColor.red - nowColor.red) * colorPagerSwipeState.fraction + nowColor.red,
+                        green = (targetColor.green - nowColor.green) * colorPagerSwipeState.fraction + nowColor.green,
+                        blue = (targetColor.blue - nowColor.blue) * colorPagerSwipeState.fraction + nowColor.blue,
+                        alpha = 0.3f
+                    )
+                    //draw a rect with showColor
+                    drawRect(showColor)
+                }
+        ) {
+
+            Spacer(modifier = Modifier.statusBarsPadding())
+
+            LinearPager(
+                data = colors,
+                pagerSwipeState = colorPagerSwipeState,
+                duration = 5000,
+                widthPx = resources.displayMetrics.widthPixels.toFloat()
+            ) { it, index ->
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(10.dp)
+                        .shadow(5.dp, RoundedCornerShape(10.dp))
+                        .background(it, RoundedCornerShape(10.dp))
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -182,7 +230,13 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(10.dp))
                                 .clickable {
-                                    Toast.makeText(this@MainActivity, "click $index", Toast.LENGTH_SHORT).show()
+                                    Toast
+                                        .makeText(
+                                            this@MainActivity,
+                                            "click $index",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
                                 }
                         )
                         Text(
