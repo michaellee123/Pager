@@ -8,7 +8,7 @@
 
 ## How about it
 
-You know that, Google created `ViewPager` and `ViewPager2`, now there is a new shit named `Compose Pager`. I don't know what's in Google's developer's mind to create such a worst thing, `Compose Pager` missed `offset limit`, it means you can only show three items, but sometimes we need to write a banner with stack style, I don't know why how we wanna do that, but the PMs want it. (Modify at 2023-09-26: My genius product manager said that he want a normal style banner, so why did he create that shit? Is he thinking with his asshole?)
+You know that, Google created `ViewPager` and `ViewPager2`, now there is a new shit named `Compose Pager`. I don't know what's in Google's developer's mind to create such a worst thing, `Compose Pager` missed `offset limit`, it means you can only show three items, but sometimes we need to write a banner with stack style, I don't know why how we wanna do that, but the PMs want it. (Modified on 2023-09-26: My genius product manager said that he wants a normal style banner, so why did he create that shit? Is he thinking with his asshole?)
 
 But don't worry, we have hands, yep, we have these. We can do anything we want, so there are some new shit by me here.
 
@@ -89,7 +89,7 @@ StackPager(
 }
 ```
 
-I think there codes are enough simple, so let's see how to create a indicator.
+I think these codes are enough simple, so let's see how to create a indicator.
 
 ### Indicator
 
@@ -176,6 +176,6 @@ In another word, `LinearPager` and `StackPager` are based on `BasicPager`, and t
 
 ### About the `loopLimit`
 
-If you need a loop pager, the last item will be the first item, and the first item will be the last item. So if the animation needs to be smooth, you need to set the `loopLimit` to you want to show over of the original data.
+If you need a loop pager, the last item will be the first item, and the first item will be the last item. So if the animation needs to be smooth, you need to set the `loopLimit` to the size that you want to show exceed of the original data.
 
 For example, if you have 5 items and use a style like `LinearPager` you need to set the `loopLimit` to 1. And you need to change your list to `[5, 1, 2, 3, 4, 5, 1]`. If you use a style like `StackPager`, you need to set the `loopLimit` to 3. And you need to change your list to `[3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3]`. When you swipe the page to the end(your original data list's end), and swipe again, `BasicPager` will make the `current` back to the first, and the animation will looks smooth. If you don't need a loop pager, just set the `loopLimit` to 0 and `loop` to false.
